@@ -42,8 +42,16 @@ public class AuthController {
         return authService.logout(request.getToken() , request.getUserId());
     }
     @PostMapping("/validate")
-    public ResponseEntity<SessionStatus> validate(@RequestBody ValidateRequestDto request){
-        return null;
+    public ResponseEntity<ValidateResponseDto> validate(@RequestBody ValidateRequestDto request){
+        Optional<ValidateResponseDto> validateResponseDtoOptional = authService.validateToken(request.getToken() , request.getUserId());
+
+        ValidateResponseDto validateResponseDto = validateResponseDtoOptional.get();
+
+        if(validateResponseDtoOptional.isEmpty()){
+            return new ResponseEntity<>(validateResponseDto , HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(validateResponseDto , HttpStatus.OK);
     }
 
 }

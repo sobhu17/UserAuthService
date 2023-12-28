@@ -1,5 +1,7 @@
 package user.service.userservice.services;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.MacAlgorithm;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -10,7 +12,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMapAdapter;
 import user.service.userservice.DTOs.UserDto;
+import user.service.userservice.DTOs.ValidateRequestDto;
+import user.service.userservice.DTOs.ValidateResponseDto;
 import user.service.userservice.exceptions.NotFoundException;
+import user.service.userservice.models.Role;
 import user.service.userservice.models.Session;
 import user.service.userservice.models.SessionStatus;
 import user.service.userservice.models.User;
@@ -19,10 +24,7 @@ import user.service.userservice.respository.UserRepository;
 
 import javax.crypto.SecretKey;
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class AuthService {
@@ -106,6 +108,45 @@ public class AuthService {
         sessionRepository.save(session);
 
         return ResponseEntity.ok().build();
+    }
+
+    public Optional<ValidateResponseDto> validateToken(String token , Long userId){
+        Optional<Session> sessionOptional = sessionRepository.findByTokenAndUser_Id(token, userId);
+
+        if (sessionOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Session session = sessionOptional.get();
+
+        if (!session.getStatus().equals(SessionStatus.ACTIVE)) {
+            return Optional.empty();
+        }
+
+
+//        Jws<Claims> claimsJws = Jwts.parser()
+//                .build()
+//                .parseSignedClaims(token);
+//
+//        String email = (String) claimsJws.getPayload().get("email");
+//        List<Role> roles = (List<Role>) claimsJws.getPayload().get("roles");
+//        Date expiryAt = (Date) claimsJws.getPayload().get("expiryAt");
+//        Date createAt = (Date) claimsJws.getPayload().get("createAt");
+//
+//        if (expiryAt.before(new Date())) {
+//            return Optional.empty();
+//        }
+
+        User user = userRepository.findById(userId).get();
+
+        ValidateResponseDto validateResponseDto = new ValidateResponseDto();
+        validateResponseDto.setEmail(user.getEmail());
+        validateResponseDto.setUserId(userId);
+//        validateResponseDto.setExpiryAt(expiryAt);
+//        validateResponseDto.setCreatedAt(createAt);
+        validateResponseDto.setRoles(user.getRoles());
+
+        return Optional.of(validateResponseDto);
     }
 
 
