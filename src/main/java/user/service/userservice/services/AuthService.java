@@ -1,5 +1,7 @@
 package user.service.userservice.services;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.MacAlgorithm;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,7 +17,11 @@ import user.service.userservice.models.User;
 import user.service.userservice.respository.SessionRepository;
 import user.service.userservice.respository.UserRepository;
 
+import javax.crypto.SecretKey;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -47,6 +53,20 @@ public class AuthService {
 
         String token = RandomStringUtils.randomAlphanumeric(30);
 
+        MacAlgorithm alg = Jwts.SIG.HS256;
+        SecretKey key = alg.key().build();
+
+        Map<String , Object> jsonForJwt = new HashMap<>();
+        jsonForJwt.put("email" , user.getEmail());
+        jsonForJwt.put("roles" , user.getRoles());
+        jsonForJwt.put("createAt" , new Date());
+        jsonForJwt.put("expiryAt" , new Date(LocalDate.now().plusDays(3).toEpochDay()));
+
+        token = Jwts.builder()
+                .claims(jsonForJwt)
+                .signWith(key)
+                .compact();
+
         Session session = new Session();
         session.setUser(user);
         session.setToken(token);
@@ -70,6 +90,22 @@ public class AuthService {
         UserDto userDto = convertUserIntoUserDto(user);
 
         return new ResponseEntity<>(userDto , HttpStatus.OK);
+    }
+
+    public ResponseEntity<Void> logout(String token , Long userId){
+        Optional<Session> sessionOptional = sessionRepository.findByTokenAndUser_Id(token , userId);
+
+        if(sessionOptional.isEmpty()){
+            return null;
+        }
+
+        Session session = sessionOptional.get();
+
+        session.setStatus(SessionStatus.ENDED);
+
+        sessionRepository.save(session);
+
+        return ResponseEntity.ok().build();
     }
 
 

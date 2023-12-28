@@ -8,9 +8,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import user.service.userservice.DTOs.*;
 import user.service.userservice.exceptions.NotFoundException;
+import user.service.userservice.models.Session;
 import user.service.userservice.models.SessionStatus;
 import user.service.userservice.models.User;
+import user.service.userservice.respository.SessionRepository;
 import user.service.userservice.services.AuthService;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -35,7 +39,7 @@ public class AuthController {
     }
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody LogOutRequestDto request){
-        return null;
+        return authService.logout(request.getToken() , request.getUserId());
     }
     @PostMapping("/validate")
     public ResponseEntity<SessionStatus> validate(@RequestBody ValidateRequestDto request){
