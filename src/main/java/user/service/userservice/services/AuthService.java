@@ -150,8 +150,6 @@ public class AuthService {
     }
 
 
-
-
     public UserDto convertUserIntoUserDto(User user){
         UserDto userDto = new UserDto();
         userDto.setEmail(user.getEmail());

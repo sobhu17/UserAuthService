@@ -14,6 +14,7 @@ import user.service.userservice.models.User;
 import user.service.userservice.respository.SessionRepository;
 import user.service.userservice.services.AuthService;
 
+
 import java.util.Optional;
 
 @RestController
@@ -33,7 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDto> login(@RequestBody LogInRequestDto request) throws NotFoundException {
+    public ResponseEntity<UserDto> login(@RequestBody LogInRequestDto request) throws NotFoundException{
         return authService.login(request.getEmail() , request.getPassword());
 
     }
